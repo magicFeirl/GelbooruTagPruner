@@ -10,3 +10,7 @@
 - dress.json  
 - poses.json  
 - sexual.json
+
+## 一般流程
+1. 清除分类 Tag
+2. 根据词频细筛
