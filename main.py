@@ -17,11 +17,12 @@ class TagInfo(dict):
         info = TagInfo()
 
         for key in ['file_path', 'tags', 'pruned_tags']:
-            if key in params:
-                setattr(info, key, params[key])
-        
+          val = params.get(key, None)
+          setattr(info, key, val)
+          info[key] = val
+
         return info
-                
+
 class TagPruner(object):
     def __init__(self, path):
         self.path = path
@@ -85,17 +86,21 @@ class TagPruner(object):
     async def save(self, bak = True):
         for info in self.result:
             async with aiofiles.open(info.file_path, 'w', encoding='utf-8') as f:
-                f.write(', '.join(info.pruned_tags))
+                print('Saving', info.file_path)
+                await f.write(', '.join(info.pruned_tags))
 
             if bak:
-                basename = os.path.basename(info.file_path)
-                async with aiofiles.open(f'{basename}_0', 'w', encoding='utf-8') as f:
-                    f.write(', '.join(info.tags))
-                    
-
+                path, basename = os.path.split(info.file_path)
+                basename, _ = os.path.splitext(basename)
+                dest = f'{os.path.join(path, basename)}_0'
+                async with aiofiles.open(dest, 'w', encoding='utf-8') as f:
+                    print('Backup', dest)
+                    await f.write(', '.join(info.tags))
 async def main():
-    pass
+    pruner = TagPruner(r'D:\sd-aki\dataset\nanawo_akari')
+    await pruner.prune(r'.\tag_classification\character_tags_sorted_nonsexual.json', concurrency=11)
+    await pruner.save()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
